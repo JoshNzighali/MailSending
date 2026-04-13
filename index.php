@@ -1,41 +1,68 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-require_once __DIR__ . '/vendor/phpmailer/src/Exception.php';
-require_once __DIR__ . '/vendor/phpmailer/src/PHPMailer.php';
-require_once __DIR__ . '/vendor/phpmailer/src/SMTP.php';
+// Autoload (meilleure pratique si tu utilises Composer)
+require __DIR__ . '/vendor/autoload.php';
 
-// passing true in constructor enables exceptions in PHPMailer
+// Charger les variables sensibles depuis un fichier .env (optionnel mais recommandé)
+$email = getenv('MAIL_USERNAME');
+$password = getenv('MAIL_PASSWORD');
+
 $mail = new PHPMailer(true);
 
 try {
-    // Server settings
-    $mail->SMTPDebug = SMTP::DEBUG_SERVER; // for detailed debug output
+    // ========================
+    // CONFIGURATION SMTP
+    // ========================
     $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
+    $mail->Host       = 'smtp.gmail.com';
+    $mail->SMTPAuth   = true;
+    $mail->Username   = $email;
+    $mail->Password   = $password;
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port = 587;
+    $mail->Port       = 587;
 
-    $mail->Username = 'example@gmail.com'; // YOUR gmail email
-    $mail->Password = 'YOUR_GMAIL_PASSWORD'; // YOUR gmail password
+    // Désactiver debug en production
+    $mail->SMTPDebug = 0;
 
-    // Sender and recipient settings
-    $mail->setFrom('example@gmail.com', 'Sender Name');
+    // ========================
+    // EXPÉDITEUR / DESTINATAIRE
+    // ========================
+    $mail->setFrom($email, 'Josh N\'zighali');
     $mail->addAddress('phppot@example.com', 'Receiver Name');
-    $mail->addReplyTo('example@gmail.com', 'Sender Name'); // to set the reply to
 
-    // Setting the email content
-    $mail->IsHTML(true);
-    $mail->Subject = "Send email using Gmail SMTP and PHPMailer";
-    $mail->Body = 'HTML message body. <b>Gmail</b> SMTP email body.';
-    $mail->AltBody = 'Plain text message body for non-HTML email client. Gmail SMTP email body.';
+    // Optionnel
+    $mail->addReplyTo($email, 'Support');
+    $mail->addCC('cc@example.com');
+    // $mail->addBCC('bcc@example.com');
 
-    $mail->send();
-    echo "Email message sent.";
+    // ========================
+    // CONTENU EMAIL
+    // ========================
+    $mail->isHTML(true);
+    $mail->Subject = ' New Message from ChatApp';
+
+    $mail->Body = "
+        <h2>Hello </h2>
+        <p>This email was sent using <b>PHPMailer</b> with Gmail SMTP.</p>
+        <p><strong>Message:</strong> Test successful </p>
+        <br>
+        <small>© " . date('Y') . " Josh N'zighali</small>
+    ";
+
+    $mail->AltBody = "This email was sent using PHPMailer (plain text version).";
+
+    // ========================
+    // ENVOI
+    // ========================
+    if ($mail->send()) {
+        echo " Email sent successfully.";
+    } else {
+        echo " Email not sent.";
+    }
+
 } catch (Exception $e) {
-    echo "Error in sending email. Mailer Error: {$mail->ErrorInfo}";
+    echo " Error: {$mail->ErrorInfo}";
 }
 ?>
